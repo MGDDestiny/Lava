@@ -59,7 +59,7 @@ bash eval_ruler_lava.sh
 
 ```bash
 cd ./experiments/InfiniteBench
-bash src/eval_mistral_lava.sh
+bash src/eval_infinite_lava.sh
 ```
 
 ## Citation

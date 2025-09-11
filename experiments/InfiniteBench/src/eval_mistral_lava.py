@@ -19,12 +19,8 @@ from eval_utils import (
 )
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-from adaptive_snapkv.monkeypatch.monkeypatch import  replace_mistral_fixed,replace_mistral_adaptive, replace_llama_adaptive, replace_llama_fixed, replace_qwen2_adaptive, replace_qwen2_fixed
-from adaptive_snapkv.monkeypatch.monkeypatch import replace_llama_adaptive_my, replace_qwen2_adaptive_my, replace_mistral_adaptive_my
-from adaptive_snapkv.monkeypatch.monkeypatch import replace_qwen2_adaptive_my_origin, replace_llama_adaptive_my_origin, replace_mistral_adaptive_my_origin
-from adaptive_snapkv.monkeypatch.monkeypatch import replace_mistral_cake, replace_qwen2_cake, replace_llama_cake
-from adaptive_snapkv.monkeypatch.monkeypatch import replace_gemma_adaptive_my, replace_gemma_adaptive
-
+from adaptive_snapkv.monkeypatch.monkeypatch import replace_mistral_fixed, replace_mistral_adaptive, replace_qwen2_adaptive, replace_qwen2_fixed
+from adaptive_snapkv.monkeypatch.monkeypatch import replace_mistral_lava, replace_qwen2_lava
 
 MAX_POSITION_ID = 128 * 1024  # Determined by the model
 TRUNCATE_LEN = 128 * 1000
@@ -41,15 +37,12 @@ def parse_args(args=None):
     parser.add_argument("-m", '--model_name_or_path', type=str, required=True)
     parser.add_argument("--skip",type=int, default=0, help="skip layer number")
     parser.add_argument('--compress_args_path', type=str, default=None, help="Path to the compress args")
-    parser.add_argument('--mode', type=str, choices=['ada', 'my', 'fix', 'base', 'my_origin', 'cake'], help="Ada mode, fix mode or normal")
+    parser.add_argument('--mode', type=str, choices=['ada', 'fix', 'base', 'lava'], help="Ada mode, fix mode, lava mode or normal")
     parser.add_argument('--gqa_support',action='store_true', default=False, help="init gqa_support")
     parser.add_argument('--floor_alpha',type=float,default=0.2,help="floor_alpha budgets for each head")
     parser.add_argument('--normalize',action='store_true')
     parser.add_argument('--pyram',action='store_true',help="using pyram mode")
     parser.add_argument('--pyram_beta',default=20,type=int, help="hyper parameter for pyram")
-    parser.add_argument('--gamma1',type=float,default=0.5,help="gamma1")
-    parser.add_argument('--gamma2',type=float,default=0.5,help="gamma2")
-    parser.add_argument('--gamma3',type=float,default=0.5,help="gamma3")
     return parser.parse_args(args)
 
 def truncate_input(input: list, max_length: int, manner="middle"):
@@ -250,44 +243,26 @@ if __name__ == "__main__":
         compress_args['pyram_mode']= args.pyram
         compress_args['skip'] = args.skip
         compress_args['pyram_beta'] = args.pyram_beta
-        compress_args['gamma1'] = args.gamma1
-        compress_args['gamma2'] = args.gamma2
-        compress_args['gamma3'] = args.gamma3
         compress = True
         # if args.adaptive:
         if args.mode == "ada":
             print("Ada mode")
             replace_mistral_adaptive()
-            replace_llama_adaptive()
             replace_qwen2_adaptive()
-            replace_gemma_adaptive()
         elif args.mode == "fix":
             print("Fix mode")
             replace_mistral_fixed()
-            replace_llama_fixed()
             replace_qwen2_fixed()
-        elif args.mode == "my":
-            print("My mode")
-            replace_mistral_adaptive_my()
-            replace_qwen2_adaptive_my()
-            replace_llama_adaptive_my()
-            replace_gemma_adaptive_my()
-        elif args.mode == "my_origin":
-            print("My origin mode")
-            replace_mistral_adaptive_my_origin()
-            replace_qwen2_adaptive_my_origin()
-            replace_llama_adaptive_my_origin()
-        elif args.mode == "cake":
-            print("Cake mode")
-            replace_mistral_cake()
-            replace_qwen2_cake()
-            replace_llama_cake()
+        elif args.mode == "lava":
+            print("Lava mode")
+            replace_mistral_lava()
+            replace_qwen2_lava()
         else:
             print("Base mode")
     else:
         print("Base mode")
 
-    def config_compress(model, window_size=32, base_capacity=512, kernel_size=7, pooling="maxpool", floor_alpha=0.5, pyram_mode = False, pyram_beta = 20, normalize=True, skip=0, gqa_support=False, gamma1=0.5, gamma2=0.5, gamma3=10):
+    def config_compress(model, window_size=32, base_capacity=512, kernel_size=7, pooling="maxpool", floor_alpha=0.5, pyram_mode = False, pyram_beta = 20, normalize=True, skip=0, gqa_support=False):
         model.model.config.window_size = window_size
         model.model.config.base_capacity = base_capacity
         model.model.config.kernel_size = kernel_size
@@ -300,9 +275,6 @@ if __name__ == "__main__":
         model.model.config.pyram_beta = pyram_beta
         model.model.config.skip = skip
         model.model.config.gqa_support = gqa_support
-        model.model.config.gamma1 = gamma1
-        model.model.config.gamma2 = gamma2
-        model.model.config.gamma3 = gamma3
         return model
 
     # NOTE: load model after replace
@@ -315,9 +287,7 @@ if __name__ == "__main__":
     elif args.mode == "fix":
         if args.pyram:
             args.out_name = f"{args.out_name}_pyram_beta_{args.pyram_beta}"
-    elif args.mode == "cake":
-        args.out_name = f"{args.out_name}_gamma1_{args.gamma1}_gamma2_{args.gamma2}_gamma3_{args.gamma3}"
-        
+
     # Data
     result_dir = Path(args.output_dir, model_name)
     result_dir.mkdir(exist_ok=True, parents=True)
