@@ -67,14 +67,7 @@ bash src/eval_infinite_lava.sh
 If you found our work valuable, please cite:
 
 ```
-@inproceedings{
-shen2025lava,
-title={{LAV}a: Layer-wise {KV} Cache Eviction with Dynamic Budget Allocation},
-author={Yiqun Shen and Song Yuan and Zhengze Zhang and Xiaoliang Wang and Daxin Jiang and Nguyen Cam-Tu},
-booktitle={The 2025 Conference on Empirical Methods in Natural Language Processing},
-year={2025},
-url={https://openreview.net/forum?id=2wLIS98ZDp}
-}
+
 ```
 
 ## Acknowledgement
