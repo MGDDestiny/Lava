@@ -67,7 +67,15 @@ bash src/eval_infinite_lava.sh
 If you found our work valuable, please cite:
 
 ```
-
+@misc{shen2025lavalayerwisekvcache,
+      title={LAVa: Layer-wise KV Cache Eviction with Dynamic Budget Allocation}, 
+      author={Yiqun Shen and Song Yuan and Zhengze Zhang and Xiaoliang Wang and Daxin Jiang and Nguyen Cam-Tu},
+      year={2025},
+      eprint={2509.09754},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2509.09754}, 
+}
 ```
 
 ## Acknowledgement
